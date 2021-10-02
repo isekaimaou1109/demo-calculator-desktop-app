@@ -1,0 +1,19 @@
+#dropzone {
+    text-align: center;
+    width: 300px;
+    height: 100px;
+    margin: 10px;
+    padding: 10px;
+    border: 4px dashed red;
+    border-radius: 10px;
+}
+
+#boxtitle {
+    display: table-cell;
+    vertical-align: middle;
+    text-align: center;
+    color: black;
+    font: bold 2em "Arial", sans-serif;
+    width: 300px;
+    height: 100px;
+}
