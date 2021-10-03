@@ -22,7 +22,7 @@ export function Login({ staticContext }) {
     }
 
     return <BaseContext>
-        <form method='POST' action='/login' onSubmit={(e) => onSubmit(e)}>
+        <form id="login_form" method='POST' action='/login'>
             <input type="hidden" name="_csrf" id="_csrf" value={csrfToken} />
             <label for="username">Username: </label>
             <input type='text' id='username' name='username' placeholder='username' />

@@ -11,6 +11,7 @@ import csurf from 'csurf';
 import bodyParser from 'body-parser';
 import mongoose from 'mongoose';
 import cors from 'cors';
+import jwt from 'jsonwebtoken';
 import { Server } from "socket.io";
 
 import users from './routes/users';
@@ -20,6 +21,9 @@ import register_route from './routes/register';
 import dashboard_route from './routes/dashboard';
 import api_route from './api/filesystem.js';
 
+import { UserModel } from './models/Users.js';
+import { LogsModel } from './models/Logs.js';
+
 import { standardHeaderSetting, logWriter, preventLogin } from './utils.js';
 
 const options = {
@@ -27,7 +31,7 @@ const options = {
     cert: fs.readFileSync('cert.pem')
 };
 
-const app = express();
+export const app = express();
 const httpsServer = https.createServer(options, app);
 const csrfProtection = csurf({ cookie: true });
 export const io = new Server(httpsServer, {
@@ -68,8 +72,38 @@ app.use('/', routes);
 app.use('/users', users);
 app.use('/login', csrfProtection, login_route);
 app.use('/register', csrfProtection, register_route);
-app.use('/dashboard', dashboard_route);
+app.use('/dashboard', function (req, res, next) {
+    if (!req.cookies['__au__'] || !req.cookies['_k_']) {
+        if (req.cookies['__au__']) {
+            res.clearCookie('__au__');
+        }
+
+        if (req.cookies['_k_']) {
+            res.clearCookie('_k_');
+        }
+
+        res.redirect(301, "/");
+    } 
+
+    if (req.cookies['__au__'] && req.cookies['_k_']) {
+        jwt.verify(req.cookies['__au__'], req.cookies['_k_'], function (err, payload) {
+            UserModel().findOne({ _id: payload.__p__ }, function (err, user) {
+                if (!user || err) {
+                    res.redirect(301, "/");
+                }
+                next();
+            });
+        });
+    } 
+}, dashboard_route);
 app.use('/api', api_route);
+
+io.on('wrong_login', function (isWrong, request) {
+    if (isWrong && request.ip) {
+        const log = new LogsModel();
+        log.initialization(request.ip, request.protocol, request.method);
+    }
+});
 
 //io.engine.on("initial_headers", (headers, req) => {
 //    headers["test"] = "123";

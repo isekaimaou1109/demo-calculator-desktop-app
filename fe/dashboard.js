@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { BrowserRouter, Route, Switch, Link } from 'react-router-dom';
 import axios from 'axios';
+import jwt from 'jsonwebtoken';
 
 function DashboardContent(props) {
     const fileSize = (size) => {
@@ -101,6 +102,52 @@ function DashboardChatting(props) {
 
 function DashboardRouting() {
     let _token_ = window.location.pathname.split('/dashboard/').join('');
+
+    for (let cookie of document.cookie.split('; ')) {
+        for (let value of cookie.split('=')) {
+            if (value === '__au__') {
+                if (value === _token_) {
+                    axios({
+                        method: 'POST',
+                        url: '/login/auth',
+                        baseURL: 'https://localhost:2337',
+                        timeout: 5000,
+                        data: {
+                            authId: Buffer.from(value, 'utf8')
+                        }
+                    }).then(response => {
+                        if (response.status == 200 || response.statusText == 'Ok') {
+                            return (
+                                <BrowserRouter>
+                                    <Link to={`/dashboard/${_token_}`}>dashboard</Link>
+                                    <Link to={`/dashboard/${_token_}/filesystem`}>dashboard filesystem</Link>
+                                    <Link to={`/dashboard/${_token_}/chat`}>dashboard chat</Link>
+
+                                    <Switch>
+                                        <Route exact path="/dashboard/:id">
+                                            <DashboardContent />
+                                        </Route>
+                                        <Route exact path="/dashboard/:id/filesystem" children={<DashboardFilesystem />} />
+                                        <Route exact path="/dashboard/:id/chat" children={<DashboardChatting />} />
+                                    </Switch>
+                                </BrowserRouter>
+                            )
+                        } else {
+                            try {
+                                axios({
+                                    method: 'GET',
+                                    url: '/',
+                                    baseURL: 'https://localhost:2337'
+                                });
+                            } catch (e) {
+                                console.error(e);
+                            }
+                        }
+                    }).catch(e => console.error(e));
+                }
+            }
+        }
+    }
 
     return (
         <BrowserRouter>

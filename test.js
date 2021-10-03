@@ -24,19 +24,33 @@
 //app.listen(3000, () => console.log('listening'));
 
 
-var { PythonShell } = require('python-shell');
+//var { PythonShell } = require('python-shell');
 
-let options = {
-    mode: 'text',
-    pythonPath: 'C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python38\\python.exe',
-    scriptPath: 'C:\\Users\\Administrator\\source\\repos\\server',
-    args: ['-f', 'D:/user_storage/u2/data.txt']
-};
+//let options = {
+//    mode: 'text',
+//    pythonPath: 'C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python38\\python.exe',
+//    scriptPath: 'C:\\Users\\Administrator\\source\\repos\\server',
+//    args: ['-f', 'D:/user_storage/u2/data.txt']
+//};
 
-PythonShell.run('storage_operations.py', options, function (err, results) {
-    if (err) throw err;
-    // results is an array consisting of messages collected during execution
-    const regexp = /[A-Z]+\\{2}\w+\:\((\w+\s*)*\:\)/gm
+//PythonShell.run('storage_operations.py', options, function (err, results) {
+//    if (err) throw err;
+//    // results is an array consisting of messages collected during execution
+//    const regexp = /SHIROGANE/gm
+//    var obj = {}
 
-    results.forEach(item => console.log(item))
-});
+//    for (let item of results) {
+//        console.log(typeof item)
+//        var current_user;
+
+//        if (item.match(regexp)) {
+//            current_user = item
+//            obj[current_user] = []
+//            console.log(item)
+//        }
+//    }
+
+//    console.log(obj)
+//});
+
+var c = require('crypto')

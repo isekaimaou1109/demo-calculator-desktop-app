@@ -11,19 +11,19 @@ import { wrapper } from '../utils.js';
 import { Login } from '../fe/login.js';
 import { UserModel } from '../models/Users.js';
 import { LogsModel } from '../models/Logs.js';
+
 import { io } from '../app.js';
 
-var router = express.Router();
+const router = express.Router();
 
 router.use(passport.initialize());
 
 /* local login */
 var middleware = function (req, res, next) {
     UserModel().findOne({ username: req.body.username }, function (err, user) {
-        console.log("this is a user from " + JSON.stringify(user))
-
         if (!user || err) {
-            res.redirect(301, "/");
+            io.emit('wrong_login', true, req);
+            res.redirect(301, "/login");
             //let count = loginLog.wrongAuthCount();
             //var downtime = count * 60 * 1000;
             //var state = false;
@@ -45,9 +45,11 @@ var middleware = function (req, res, next) {
             var secretKey = user.keys.get("secretKey")
 
             var token = jwt.sign({ __p__: user._id }, secretKey, { expiresIn: 60 * 60 });
-            console.log("token is " + JSON.stringify(token))
 
             res.locals.token = token
+
+            res.cookie('_u_', user.username, { secure: true, expires: 0});
+            res.cookie('_k_', secretKey, { expires: 0, secure: true });
 
             next();
         }
@@ -114,8 +116,8 @@ router.get('/', function (req, res) {
             <Login staticContext={staticContext} />
         </StaticRouter>
     );
-
-    res.status(200).send(wrapper("Login", html)); 
+    //(title = "", content = "", scripts = null, extraScripts = null, css = null)
+    res.status(200).send(wrapper("Login", html, "<script src='/static/javascripts/__f__.js'></script>")); 
 });
 
 router.post('/', middleware, function (req, res) {
@@ -125,8 +127,28 @@ router.post('/', middleware, function (req, res) {
             secure: true
         });
 
-        res.setHeader('Authorization', `Bearer ${res.locals.token}`)
+        res.setHeader('Authorization', `Bearer ${res.locals.token}`);
         res.redirect(301, `/dashboard/${res.locals.token}`);
+    }
+});
+
+router.post('/auth', function (req, res) {
+    const { authId } = req.body;
+    var convert = authId.toString('utf8');
+
+    if (req.cookies && req.cookies['_u_']) {
+        UserModel().findOne({ username: req.cookies['_u_'] }, function (err, user) {
+            if (err || !user) {
+                res.redirect(301, '/');
+            } else {
+                //jwt.verify(convert, cert, { algorithms: ['RS256'] }, function (err, payload) {
+                //    if (payload) {
+
+                //    }
+                //});
+                res.redirect(`${req.protocol}://${req.hostname}:2337${req.originalUrl}`);
+            }
+        });
     }
 });
 
